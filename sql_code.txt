@@ -1,0 +1,222 @@
+---------------------
+-- table modifying --
+---------------------
+
+ALTER TABLE online_retail
+ADD COLUMN Revenue REAL;
+
+UPDATE online_retail
+SET Revenue = UnitPrice * Quantity;
+
+-- fill in corresponding Country into missing CustomerID
+update online_retail
+set CustomerID = Country
+where CustomerID isnull;
+
+Delete from online_retail
+WHERE SUBSTR(InvoiceNo, 1, 1) NOT IN ('C', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+
+---------------------
+-- table querying  --
+---------------------
+
+SELECT *
+FROM Online_Retail
+order by Revenue desc;
+
+------------------
+--    page 4    --
+------------------
+
+SELECT
+COUNT(*) - COUNT(InvoiceNo) AS InvoiceNo_null_count,
+COUNT(*) - COUNT(StockCode) AS StockCode_null_count,
+COUNT(*) - COUNT(Description) AS Description_null_count,
+COUNT(*) - COUNT(Quantity) AS Quantity_null_count,
+COUNT(*) - COUNT(CustomerID) AS CustomerID_null_count,
+COUNT(*) - COUNT(Country) AS Country_null_count
+FROM online_retail;
+SELECT *
+from Online_Retail
+where Description isnull;
+
+SELECT *
+from Online_Retail
+where CustomerID isnull;
+
+------------------
+--    page 5    --
+------------------
+
+SELECT *
+FROM online_retail
+WHERE SUBSTR(InvoiceNo, 1, 1) NOT IN ('C', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+
+------------------
+--    page 6    --
+------------------
+
+SELECT *
+FROM online_retail
+WHERE UnitPrice = 0;
+
+SELECT UnitPrice, count(*) as number_of_sales
+FROM online_retail
+group by UnitPrice
+order by UnitPrice asc;
+
+SELECT UnitPrice, count(*) as number_of_sales
+FROM online_retail
+group by UnitPrice
+order by UnitPrice desc;
+
+SELECT description, count(*) as number_of_sales
+FROM online_retail
+WHERE UnitPrice = 0
+group by description
+order by number_of_sales desc;
+
+------------------
+--    page 7    --
+------------------
+
+select unitprice, count(*) as count_for_22655
+from online_retail
+where stockcode = "22655"
+group by unitprice;
+
+select unitprice, count(*) as count_for_22656
+from online_retail
+where stockcode = "22656" and invoiceNo not like "A%" and invoiceNo not like "C%"
+group by unitprice;
+
+select StockCode, avg(UnitPrice) as mean, min(UnitPrice) as minimum
+from online_retail
+where invoiceNo not like "A%" and invoiceNo not like "C%"
+group by StockCode
+having minimum = 0
+order by mean desc;
+
+-------------------------
+--    page 9 and 11    --
+-------------------------
+
+select InvoiceNo, sum(Revenue) as sum_of_order
+from online_retail
+group by InvoiceNo
+order by sum_of_order desc
+limit 5;
+
+select InvoiceNo, sum(Revenue) as sum_of_order
+from online_retail
+group by InvoiceNo
+order by sum_of_order asc
+limit 3;
+
+select *
+from online_retail
+where CustomerID = "15098";
+
+select *
+from online_retail
+where InvoiceNo in ("C581484", "C541433", "581483", "541431");
+
+-------------------
+--    page 10    --
+-------------------
+
+select customerID, count(*) as number_of_inv
+from (select customerID, invoiceNo, sum(revenue) as revenue_sum
+from online_retail
+group by invoiceNo
+having revenue_sum >= 0
+order by revenue_sum)
+group by customerID
+order by number_of_inv desc;
+
+select customerID, sum(revenue_sum) as revenue_total
+from (select customerID, invoiceNo, sum(revenue) as revenue_sum
+from online_retail
+group by invoiceNo
+having revenue_sum >= 0
+order by revenue_sum)
+group by customerID
+order by revenue_total desc;
+
+-------------------
+--    page 12    --
+-------------------
+
+--number of invoices
+select count(*) as number_of_invoices
+from (select InvoiceNo, count(*)
+from Online_Retail
+group by InvoiceNo);
+
+--number of customers (inluded one more - the NULL value)
+select count(*) as number_of_customers
+from (select customerID, count(*) as num
+from Online_Retail
+group by customerID
+order by num desc);
+
+--number of countries
+select count(*) as number_of_countries
+from (select country, count(*)
+from Online_Retail
+group by country);
+
+select invoiceno, customerID, Description, sum(revenue) as revenue_sum
+from
+(SELECT *, Quantity * UnitPrice as Revenue
+FROM Online_Retail)
+group by InvoiceNo
+order by Revenue_sum asc;
+
+-- total number of customers included extra 9 - non-registred customers from 9 countries
+SELECT count(*) as number_of_customers
+FROM (select customerID
+from online_retail
+group by customerID);
+
+-------------------
+--    page 14    --
+-------------------
+
+SELECT sum(revenue) as revenue_total
+FROM Online_Retail
+where invoiceNo not like "A%";
+
+SELECT sum(revenue) as revenue_plus
+FROM Online_Retail
+where revenue > 0 and invoiceNo not like "A%";
+
+SELECT sum(revenue) as revenue_plus_real
+FROM Online_Retail
+where revenue > 0 and invoiceNo not in ("581483", "541431", "556444") and invoiceNo not like "A%";
+
+SELECT sum(revenue) as revenue_plus_three
+FROM Online_Retail
+where revenue > 0 and invoiceNo in ("581483", "541431", "556444");
+
+SELECT sum(revenue) as revenue_minus
+FROM Online_Retail
+where revenue < 0 and invoiceNo not like "A%";
+
+SELECT sum(revenue) as revenue_minus_real
+FROM Online_Retail
+where revenue < 0 and invoiceNo not in ("C581484", "C541433", "C556445") and description not like "Amazon fee" and invoiceNo not like "A%";
+
+SELECT sum(revenue) as revenue_minus_three
+FROM Online_Retail
+where revenue < 0 and invoiceNo in ("C581484", "C541433", "C556445");
+
+SELECT *
+FROM Online_Retail
+where description like "Am%"
+order by description;
+
+SELECT sum(revenue) as revenue_minus_amazon
+FROM Online_Retail
+where description like "Amazon fee" and revenue < 0;
+--where stockCOde like "Amazonfee" and revenue < 0;
